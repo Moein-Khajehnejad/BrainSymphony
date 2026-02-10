@@ -55,7 +55,7 @@ Across HCP-Aging benchmarks, BrainSymphony’s multimodal fusion variant outperf
 Without any psychedelic training, BrainSymphony reconstructs held-out ROI time series on PsiConnect dataset and yields interpretable attention/influence patterns that reveal context-dependent drug effects.
 
 <p align="center">
-  <img src="assets/fig4_psiconnect_attention.png" width="700" alt="PsiConnect reconstruction and attention mapping (Fig. 4)" />
+  <img src="assets/fig4_psiconnect_attention_2.png" width="700" alt="PsiConnect reconstruction and attention mapping (Fig. 4)" />
 </p>
 
 
@@ -66,7 +66,7 @@ Without any psychedelic training, BrainSymphony reconstructs held-out ROI time s
 
 ---
 
-## What’s in this repository (planned)
+## What’s in this repository
 
 - `brainsymphony/` — model components (fMRI encoders, Perceiver fusion, Signed Graph Transformer, fusion gate)
 - `configs/` — training and evaluation configs
