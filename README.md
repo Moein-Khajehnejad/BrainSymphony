@@ -36,9 +36,7 @@ BrainSymphony contains:
    - Dynamically weights functional vs. structural embeddings per task.
 
 <p align="center">
-  <a href="assets/Figure_1.pdf">
-    <img src="assets/fig1_architecture.png" width="700" alt="BrainSymphony architecture (Fig. 1)" />
-  </a>
+  <a href="assets/Figure_1.pdf">Figure 1 (Architecture) — PDF</a>
 </p>
 
 ---
@@ -57,9 +55,7 @@ Across HCP-Aging benchmarks, BrainSymphony’s multimodal fusion variant outperf
 Without any psychedelic training, BrainSymphony reconstructs held-out ROI time series on PsiConnect dataset and yields interpretable attention/influence patterns that reveal context-dependent drug effects.
 
 <p align="center">
-  <a href="assets/fig4_psiconnect_attention.pdf">
-    <img src="assets/fig4_psiconnect_attention_2.png" width="700" alt="PsiConnect reconstruction and attention mapping (Fig. 4)" />
-  </a>
+  <a href="assets/fig4_psiconnect_attention.pdf">Figure 4 (PsiConnect) — PDF</a>
 </p>
 
 
