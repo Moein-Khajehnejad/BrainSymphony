@@ -13,7 +13,7 @@
 
 ## Highlights
 
-- **Multimodal by design:** parallel fMRI encoders + a **Signed Graph Transformer** for structural connectomes, fused by an **adaptive gating** mechanism:contentReference[oaicite:4]{index=4}.  
+- **Multimodal by design:** parallel fMRI encoders + a **Signed Graph Transformer** for structural connectomes, fused by an **adaptive gating** mechanism.  
 - **Efficient, not over-scaled:** BrainSymphony (fusion) achieves top benchmark performance with **~5.6M parameters**, far fewer than much larger neuroimaging foundation models. 
 - **Interpretable mechanisms:** attention maps provide directed, network-level signatures that reveal **drug-induced, context-dependent reorganization** in an external psilocybin dataset.
 
@@ -36,9 +36,8 @@ BrainSymphony contains:
    - Dynamically weights functional vs. structural embeddings per task.
 
 <p align="center">
-  <img src="assets/fig1_architecture.png" width="900" alt="BrainSymphony architecture (Fig. 1)" />
+  <img src="assets/fig1_architecture.png" width="700" alt="BrainSymphony architecture (Fig. 1)" />
 </p>
-
 
 ---
 
@@ -53,10 +52,10 @@ Across HCP-Aging benchmarks, BrainSymphony’s multimodal fusion variant outperf
 
 
 ### External validation + interpretability on psilocybin (PsiConnect)
-Without any psychedelic training, BrainSymphony reconstructs held-out ROI time series on PsiConnect and yields interpretable attention/influence patterns that reveal context-dependent drug effects.
+Without any psychedelic training, BrainSymphony reconstructs held-out ROI time series on PsiConnect dataset and yields interpretable attention/influence patterns that reveal context-dependent drug effects.
 
 <p align="center">
-  <img src="assets/fig4_psiconnect_attention.png" width="900" alt="PsiConnect reconstruction and attention mapping (Fig. 4)" />
+  <img src="assets/fig4_psiconnect_attention.png" width="700" alt="PsiConnect reconstruction and attention mapping (Fig. 4)" />
 </p>
 
 
