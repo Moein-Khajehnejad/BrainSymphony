@@ -1,11 +1,13 @@
 import torch
 from torch.utils.data import Dataset
 import numpy as np
+import os
 
 class BrainSymphonyDataset(Dataset):
     """
     Unified Dataset for BrainSymphony.
     Handles fMRI (BOLD), Structural Connectivity (SC), and Gradient Maps (GM).
+    Robustly loads tensors whether they are saved directly or inside a dictionary.
     """
     def __init__(self, fmri_path=None, sc_path=None, gm_path=None, 
                  transform=True, mode='multimodal'):
@@ -25,17 +27,30 @@ class BrainSymphonyDataset(Dataset):
         self.sc_data = None
         self.gm_data = None
         
+        # --- Functional Data Loading ---
         if mode in ['functional', 'multimodal'] and fmri_path:
-            self.fmri_data = torch.load(fmri_path)
-            # Ensure shape is (N, R, T)
+            if not os.path.exists(fmri_path):
+                raise FileNotFoundError(f"fMRI file not found: {fmri_path}")
+            
+            # Helper to find tensor inside dict if necessary
+            self.fmri_data = self._safe_load_tensor(fmri_path, ['fmri_data', 'data', 'fmri'])
+            
             if self.transform:
                 self.fmri_data = self._robust_scale(self.fmri_data)
                 
+        # --- Structural Data Loading ---
         if mode in ['structural', 'multimodal'] and sc_path:
-            self.sc_data = torch.load(sc_path) # (N, R, R)
+            if not os.path.exists(sc_path):
+                raise FileNotFoundError(f"SC file not found: {sc_path}")
+                
+            self.sc_data = self._safe_load_tensor(sc_path, ['fc_data', 'adj', 'sc_data', 'sc']) # (N, R, R)
             
+        # --- Gradient Maps Loading ---
         if gm_path:
-            self.gm_data = torch.load(gm_path) # (N, R, G)
+            if not os.path.exists(gm_path):
+                 print(f"Warning: Gradient Map file not found at {gm_path}. Spatial PE might fail if required.")
+            else:
+                self.gm_data = self._safe_load_tensor(gm_path, ['G_tensor', 'gradients', 'gm']) # (N, R, G)
 
         # Validation
         if self.fmri_data is not None:
@@ -43,7 +58,7 @@ class BrainSymphonyDataset(Dataset):
         elif self.sc_data is not None:
             self.length = len(self.sc_data)
         else:
-            raise ValueError("No data loaded! Check paths and mode.")
+            raise ValueError("No valid data loaded! Check paths and mode.")
 
     def __len__(self):
         return self.length
@@ -68,11 +83,31 @@ class BrainSymphonyDataset(Dataset):
             
         return sample
 
+    def _safe_load_tensor(self, path, key_search_list):
+        """Helper to load tensor whether it's raw or inside a dict"""
+        print(f"Loading {path}...")
+        loaded = torch.load(path, map_location='cpu') # Load to CPU first to avoid OOM
+        
+        if isinstance(loaded, torch.Tensor):
+            return loaded
+            
+        if isinstance(loaded, dict):
+            # Try to find the right key
+            for key in key_search_list:
+                if key in loaded:
+                    print(f"  -> Found key '{key}' in dictionary.")
+                    return loaded[key]
+            
+            # If keys don't match, print available keys for debugging
+            raise KeyError(f"Could not find valid key {key_search_list} in {path}. Available keys: {list(loaded.keys())}")
+            
+        raise ValueError(f"File {path} format not recognized (must be Tensor or Dict).")
+
     def _robust_scale(self, data):
         """
         Robust scaling: (x - median) / IQR
         """
-        print("Applying Robust Scaling...")
+        print("  -> Applying Robust Scaling...")
         N, R, T = data.shape
         reshaped = data.permute(1, 0, 2).reshape(R, -1) # (R, N*T)
         
