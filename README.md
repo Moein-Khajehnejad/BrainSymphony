@@ -79,7 +79,22 @@ Without any psychedelic training, BrainSymphony reconstructs held-out ROI time s
 pip install -r requirements.txt
 ```
 ---
-## Usage
+## Usage:
+
+### Option A) Loading Pretrained Models
+
+To easily load the model with pretrained weights (handling both functional and structural branches automatically), use the provided helper script `load_pretrained_model.py`:
+
+```python
+from load_pretrained_model import load_brainsymphony
+
+# Automatically detects and loads available checkpoints from ./checkpoints
+model = load_brainsymphony(checkpoint_dir='./checkpoints', device='cuda')
+
+# The model is now ready for inference or fine-tuning
+```
+
+### Option B) Pretrain a New Model From Scratch 
 
 ### 1. Pretrain Functional Branch (fMRI)
 To pretrain the Spatio-Temporal Transformer and Perceiver module using fMRI BOLD time series:
@@ -98,6 +113,8 @@ To pretrain the Spatio-Temporal Transformer and Perceiver module using fMRI BOLD
 - fmri_path: Path to the .pt file containing the tensor of shape (N_subjects, N_ROIs, Time_steps).
 
 - gm_path: (Optional) Path to gradient maps for Gradient-Informed Positional Encoding.
+
+- 
 ### 2. Pretrain Structural Branch (SC)
 To pretrain the Signed Graph Transformer using diffusion-derived structural connectivity matrices:
 
