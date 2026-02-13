@@ -1,25 +1,20 @@
 import torch
 import os
-import sys
 from models import BrainSymphony
 
-def load_brainsymphony(checkpoint_dir='./checkpoints', device='cpu'):
+def load_brainsymphony(checkpoint_root='./checkpoints', device='cpu'):
     """
-    Loads the BrainSymphony model flexibly. 
-    It checks for available checkpoints and loads what is found.
+    Loads the BrainSymphony model from versioned subfolders.
     
-    Args:
-        checkpoint_dir (str): Path to the directory containing .pth files.
-        device (str): 'cpu' or 'cuda'.
-    
-    Returns:
-        model (nn.Module): The initialized model with loaded weights.
+    Expected Structure:
+        checkpoint_root/
+        ├── functional_v1/      # spatial.pth, temporal.pth, context.pth, fusion.pth
+        └── structural_v1/      # structural.pth
     """
     
     # 1. Define Model Configuration
-    # (Ensure these match your training settings)
     config = {
-        'mode': 'multimodal', # Initialize full architecture to allow flexible loading
+        'mode': 'multimodal', 
         'rois': 450,
         'time_steps': 200,
         'dim': 128,
@@ -40,27 +35,31 @@ def load_brainsymphony(checkpoint_dir='./checkpoints', device='cpu'):
     print(f"Initializing BrainSymphony architecture on {device}...")
     model = BrainSymphony(config).to(device)
     
-    # 2. Define Expected Paths
-    # Note: Ensure your structural file is renamed to 'structural.pth'
+    # 2. Define Subfolder Paths (Hardcoded standard names)
+    func_dir = os.path.join(checkpoint_root, 'functional_v1')
+    struct_dir = os.path.join(checkpoint_root, 'structural_v1')
+
+    # Define file paths
     paths = {
-        'spatial': os.path.join(checkpoint_dir, 'spatial.pth'),
-        'temporal': os.path.join(checkpoint_dir, 'temporal.pth'),
-        'context': os.path.join(checkpoint_dir, 'context.pth'),
-        'fusion': os.path.join(checkpoint_dir, 'fusion.pth'),
-        'structural': os.path.join(checkpoint_dir, 'structural.pth')
+        'spatial': os.path.join(func_dir, 'spatial.pth'),
+        'temporal': os.path.join(func_dir, 'temporal.pth'),
+        'context': os.path.join(func_dir, 'context.pth'),
+        'fusion': os.path.join(func_dir, 'fusion.pth'),
+        
+        'structural': os.path.join(struct_dir, 'structural.pth')
     }
 
-    # Track what we successfully loaded
+    # Track loading status
     loaded_functional = False
     loaded_structural = False
 
     # 3. Load Functional Branch
-    if os.path.exists(paths['spatial']) and os.path.exists(paths['temporal']):
-        print(">> Found Functional checkpoints. Loading...")
+    if os.path.exists(paths['spatial']):
+        print(f">> Found Functional checkpoints in {func_dir}...")
         try:
             model.functional_module.spatial.load_state_dict(torch.load(paths['spatial'], map_location=device))
             model.functional_module.temporal.load_state_dict(torch.load(paths['temporal'], map_location=device))
-            # Context and Fusion might be optional or part of the set, check them too
+            
             if os.path.exists(paths['context']):
                 model.functional_module.context.load_state_dict(torch.load(paths['context'], map_location=device))
             if os.path.exists(paths['fusion']):
@@ -71,50 +70,30 @@ def load_brainsymphony(checkpoint_dir='./checkpoints', device='cpu'):
         except Exception as e:
             print(f"   ⚠️ Error loading Functional branch: {e}")
     else:
-        print("   ℹ️ Functional checkpoints (spatial.pth/temporal.pth) NOT found. Skipping.")
+        print(f"   ℹ️ Functional folder not found or empty: {func_dir}")
 
     # 4. Load Structural Branch
     if os.path.exists(paths['structural']):
-        print(">> Found Structural checkpoint. Loading...")
+        print(f">> Found Structural checkpoint in {struct_dir}...")
         try:
-            # We load into the encoder part of the structural module
             model.structural_module.encoder.load_state_dict(torch.load(paths['structural'], map_location=device))
             loaded_structural = True
             print("   ✅ Structural branch loaded successfully.")
         except Exception as e:
             print(f"   ⚠️ Error loading Structural branch: {e}")
     else:
-        print("   ℹ️ Structural checkpoint (structural.pth) NOT found. Skipping.")
+        print(f"   ℹ️ Structural folder/file not found: {paths['structural']}")
 
-    # 5. Final Safety Check
+    # 5. Final Check
     if not loaded_functional and not loaded_structural:
-        raise RuntimeError(
-            "\n❌ CRITICAL ERROR: No checkpoints were loaded!\n"
-            f"   Expected files in {checkpoint_dir}: spatial.pth, temporal.pth, OR structural.pth.\n"
-            "   Please check your folder path and filenames."
-        )
-
-    # 6. Mode Adjustment (Optional)
-    # If we only loaded one branch, we can inform the user or adjust the model mode conceptually
-    if loaded_functional and not loaded_structural:
-        print("\n⚠️ WARNING: Model is running in FUNCTIONAL-ONLY mode (Structural weights are random).")
-    elif loaded_structural and not loaded_functional:
-        print("\n⚠️ WARNING: Model is running in STRUCTURAL-ONLY mode (Functional weights are random).")
-    else:
+        print(f"\n⚠️ WARNING: No checkpoints found in {checkpoint_root}. Model initialized with random weights.")
+    elif loaded_functional and loaded_structural:
         print("\n✅ Model is fully loaded in MULTIMODAL mode.")
+    else:
+        print("\n⚠️ Partial load complete (One branch only).")
 
     model.eval()
     return model
 
 if __name__ == "__main__":
-    # Example usage
-    try:
-        model = load_brainsymphony(checkpoint_dir='./checkpoints', device='cpu')
-        
-        # Quick test inference (optional)
-        # dummy_batch = {'fmri': torch.randn(1, 450, 200)}
-        # out = model(dummy_batch)
-        # print("Inference test passed.")
-        
-    except RuntimeError as e:
-        print(e)
+    model = load_brainsymphony()
