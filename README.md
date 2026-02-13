@@ -95,9 +95,9 @@ To pretrain the Spatio-Temporal Transformer and Perceiver module using fMRI BOLD
 ```
 #### Arguments:
 
---fmri_path: Path to the .pt file containing the tensor of shape (N_subjects, N_ROIs, Time_steps).
+-- fmri_path: Path to the .pt file containing the tensor of shape (N_subjects, N_ROIs, Time_steps).
 
---gm_path: (Optional) Path to gradient maps for Gradient-Informed Positional Encoding.
+-- gm_path: (Optional) Path to gradient maps for Gradient-Informed Positional Encoding.
 ### 2. Pretrain Structural Branch (SC)
 To pretrain the Signed Graph Transformer using diffusion-derived structural connectivity matrices:
 
@@ -111,9 +111,9 @@ To pretrain the Signed Graph Transformer using diffusion-derived structural conn
 ```
 #### Arguments:
 
---sc_path: Path to the .pt file containing adjacency matrices of shape (N_subjects, N_ROIs, N_ROIs).
+-- sc_path: Path to the .pt file containing adjacency matrices of shape (N_subjects, N_ROIs, N_ROIs).
 
---attention_type: Choices are first_hop, multi_hop, or diffusion (default: first_hop).
+-- attention_type: Choices are first_hop, multi_hop, or diffusion (default: first_hop).
 
 ### 3. Multimodal Fusion & Downstream Tasks
 Once the branches are pretrained, you can load the weights into the unified BrainSymphony model for fine-tuning or linear probing on downstream tasks (e.g., classification, regression).
