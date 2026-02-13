@@ -1,8 +1,13 @@
+
 import torch
 import torch.nn as nn
-from .layers.spatial_temporal import SpatialTransformer, TemporalTransformer
-from .layers.context_conv import MaskedConv1DTemporalModel
-from .layers.perceiver import PerceiverIOModelROIWise
+
+from .layers import (
+    SpatialTransformer, 
+    TemporalTransformer, 
+    MaskedConv1DTemporalModel, 
+    PerceiverIOModelROIWise
+)
 
 class BrainSymphonyFMRI(nn.Module):
     def __init__(self, config):
