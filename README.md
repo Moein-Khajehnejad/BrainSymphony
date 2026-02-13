@@ -66,19 +66,89 @@ Without any psychedelic training, BrainSymphony reconstructs held-out ROI time s
 
 ---
 
-## What’s in this repository
+## Repository Structure
 
-- `brainsymphony/` — model components (fMRI encoders, Perceiver fusion, Signed Graph Transformer, fusion gate)
-- `configs/` — training and evaluation configs
-- `scripts/` — data prep, pretraining, finetuning, evaluation
-- `notebooks/` — examples and reproductions
-- `assets/` — README figures
+- `models/`: Contains the core architecture (Spatial/Temporal Transformers, Perceiver, Graph Transformer).
+- `data/`: Data loading utilities.
+- `utils/`: Masking and visualization tools.
+- `train.py`: Main training script for self-supervised pretraining.
 
-> This README is intentionally minimal and paper-focused for the initial release.  
-> “Running / training / checkpoints” instructions will be added as the codebase is finalized.
+## Installation
 
+```python
+pip install -r requirements.txt
+```
 ---
+## Usage
 
+### 1. Pretrain Functional Branch (fMRI)
+To pretrain the Spatio-Temporal Transformer and Perceiver module using fMRI BOLD time series:
+
+```python
+ train.py --mode functional \
+    --fmri_path ./data/hcp_fmri.pt \
+    --gm_path ./data/gradients.pt \
+    --epochs 100 \
+    --batch_size 16 \
+    --lr 1e-4 \
+    --save_dir ./checkpoints/functional
+```
+#### Arguments:
+
+--fmri_path: Path to the .pt file containing the tensor of shape (N_subjects, N_ROIs, Time_steps).
+
+--gm_path: (Optional) Path to gradient maps for Gradient-Informed Positional Encoding.
+### 2. Pretrain Structural Branch (SC)
+To pretrain the Signed Graph Transformer using diffusion-derived structural connectivity matrices:
+
+```python
+ train.py --mode structural \
+    --sc_path ./data/hcp_sc.pt \
+    --epochs 100 \
+    --batch_size 16 \
+    --lr 1e-4 \
+    --save_dir ./checkpoints/structural
+```
+#### Arguments:
+
+--sc_path: Path to the .pt file containing adjacency matrices of shape (N_subjects, N_ROIs, N_ROIs).
+
+--attention_type: Choices are first_hop, multi_hop, or diffusion (default: first_hop).
+
+### 3. Multimodal Fusion & Downstream Tasks
+Once the branches are pretrained, you can load the weights into the unified BrainSymphony model for fine-tuning or linear probing on downstream tasks (e.g., classification, regression).
+from models import BrainSymphony
+import torch
+
+```python
+# Configuration matching your pretrained parameters
+config = {
+    'mode': 'multimodal',
+    'rois': 450,
+    'dim': 128,
+    'time_steps': 200,
+    'num_layers': 6,
+    'num_heads': 4,
+    'mlp_dim': 512,
+    'num_layers_struct': 6,
+    'num_heads_struct': 4
+}
+
+# Initialize Full Model
+model = BrainSymphony(config)
+
+# Load Pretrained Weights (Optional helper method to be implemented or manual load)
+model.functional_module.load_state_dict(torch.load('./checkpoints/functional/epoch_100.pth'))
+model.structural_module.encoder.load_state_dict(torch.load('./checkpoints/structural/epoch_100.pth'))
+
+# Forward Pass
+# batch is a dictionary containing 'fmri', 'sc_adj', 'sc_feats'
+outputs = model(batch)
+
+fused_embedding = outputs['fused_embeds'] # (B, ROIs, Dim)
+# Apply downstream classifier on fused_embedding
+```
+---
 ## Data and preprocessing (important)
 
 BrainSymphony expects **ROI-parcellated fMRI** and (optionally) **ROI-aligned structural connectivity**:
