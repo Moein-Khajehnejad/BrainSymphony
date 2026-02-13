@@ -1,10 +1,21 @@
 from .functional import BrainSymphonyFMRI
-# We also expose the layers here for convenience
+from .structural import BrainSymphonyStructural
+from .brainsymphony import BrainSymphony
 from .layers import (
     SpatialTransformer,
     TemporalTransformer,
     MaskedConv1DTemporalModel,
-    PerceiverIOModelROIWise
+    PerceiverIOModelROIWise,
+    SignedGraphTransformer
 )
 
-__all__ = ['BrainSymphonyFMRI']
+__all__ = [
+    'BrainSymphonyFMRI', 
+    'BrainSymphonyStructural', 
+    'BrainSymphony',
+    'SpatialTransformer',
+    'TemporalTransformer',
+    'MaskedConv1DTemporalModel',
+    'PerceiverIOModelROIWise',
+    'SignedGraphTransformer'
+]
